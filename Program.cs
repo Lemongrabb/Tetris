@@ -13,24 +13,25 @@ namespace Tetris
         static void Main()
         {
             Prepare();
-            SpawnBlock();
         }
 
         static void Prepare()
         {
             Fill2DArray<Block>(ref Grid,new Empty());
             
-            Thread FramePrinting = new Thread(PrintFrameThread);
-            FramePrinting.Start();
+            Thread FramePrintingThread = new Thread(FramePrinting);
+            FramePrintingThread.Start();
 
-            Thread KeyListener = new Thread(KeyListenerThread);
-            KeyListener.Start();
+            Thread KeyListenerThread = new Thread(KeyListener);
+            KeyListenerThread.Start();
 
-            Thread Gravity = new Thread(GravityThread);
-            Gravity.Start();
+            Thread GravityThread = new Thread(Gravity);
+            GravityThread.Start();
+
+            SpawnBlock();
         }
 
-        static void GravityThread()
+        static void Gravity()
         {
             while (true)
             {
@@ -40,7 +41,7 @@ namespace Tetris
                     {
                         if (Grid[i,j].IsFalling)
                         {
-                            if (Grid[i,j+1] is Empty && j != Grid.GetLength(1)-2) //TODO fix it
+                            if (Grid[i,j+1] is Empty && j != Grid.GetLength(1)-2)
                             {
                                 Grid[i,j] = new Empty();
                                 Grid[i,j+1] = new Block1x1();
@@ -48,6 +49,9 @@ namespace Tetris
                             }else
                             {
                                 Grid[i,j].IsFalling = false;
+                                //TODO
+                                // Sprawdź cały rząd
+                                // Jeżeli cały rząd jest zajęty niespadającymi blokami, zamień go na puste pola, i każdy blok powyżej ustaw na falling
                                 SpawnBlock();
                             }
                         }
@@ -61,7 +65,7 @@ namespace Tetris
             Grid[RNG.Next(10),1] = new Block1x1();
         }
 
-        static void KeyListenerThread()
+        static void KeyListener() //TODO temporary
         {
             while (true)
             {
@@ -70,33 +74,28 @@ namespace Tetris
             }
         }
 
-        static void PrintFrameThread()
+        static void FramePrinting()
         {
             while (true)
             {
-                PrintFrame();
+                Console.Clear();
+                Console.WriteLine("XXXXXXXXXXXX");
+                for (int i = 0; i < Grid.GetLength(1)-1; i++)//TODO temporary solution, fix it later
+                {
+                    Console.Write("X");
+                    for (int j = 0; j < Grid.GetLength(0); j++)
+                    {
+                        Console.Write(Grid[j,i].Mark);
+                    }
+                    Console.Write("X\n");
+                }
+                Console.WriteLine("XXXXXXXXXXXX\n");
+                Console.WriteLine("TIME: " + Time);
+                Console.WriteLine("SCORE: " + Score);
+                Console.WriteLine("LEVEL: " + Level);
                 Thread.Sleep(100);//TODO temporary
                 Time++;
             }
-        }
-
-        static void PrintFrame()
-        {
-            Console.Clear();
-            Console.WriteLine("XXXXXXXXXXXX");
-            for (int i = 0; i < Grid.GetLength(1)-1; i++)//TODO temporary solution, fix it later
-            {
-                Console.Write("X");
-                for (int j = 0; j < Grid.GetLength(0); j++)
-                {
-                    Console.Write(Grid[j,i].Mark);
-                }
-                Console.Write("X\n");
-            }
-            Console.WriteLine("XXXXXXXXXXXX\n");
-            Console.WriteLine("TIME: " + Time);
-            Console.WriteLine("SCORE: " + Score);
-            Console.WriteLine("LEVEL: " + Level);
         }
 
         static void Fill2DArray<T>(ref T[,] array, T value)
